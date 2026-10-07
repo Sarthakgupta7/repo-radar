@@ -1,4 +1,7 @@
 import {parseTrending, type Repo} from '@/lib/repositories';
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const maxDuration = 30;
 const periods=['daily','weekly','monthly'];
 const languages=['','Python','TypeScript','JavaScript','Go','Rust','Java','C++','C#','Swift','Kotlin','Shell'];
 const cache=new Map<string,{data:unknown;expires:number}>();
@@ -7,7 +10,7 @@ export async function GET(request:Request){
  const mode=p.get('mode')||'trending', period=p.get('period')||'weekly',language=p.get('language')||'',sort=p.get('sort')||'gained';
  if(!['trending','new'].includes(mode)||!periods.includes(period)||!languages.includes(language)||!['gained','stars','forks'].includes(sort))return Response.json({error:'Invalid filter.'},{status:400});
  const key=[mode,period,language,sort].join('|'); const cached=cache.get(key);
- if(cached&&cached.expires>Date.now())return Response.json(cached.data);
+ if(p.get('refresh')!=='1'&&cached&&cached.expires>Date.now())return Response.json(cached.data);
  try{
   let repos:Repo[],source:string,total:number;
   if(mode==='trending'){
